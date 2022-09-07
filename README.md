@@ -12,7 +12,7 @@ cargo build --release
 ## Configuration
 The program expects a `webhooks.tsv` file at your `XDG_CONFIG_HOME` (normally `~/.config`), with a format as follows:
 ```tsv
-WEBHOOK_URL	PREFIX(optional)
+WEBHOOK_URL	NAME(optional)	PREFIX(optional)
 ```
 Note the use of `\t` tab-separated values instead of whitespaces.
 

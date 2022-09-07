@@ -13,7 +13,7 @@ static BUF_NAME: &str = "/tmp/webhook.tmp";
 
 struct Destination {
     url: String,
-    // simply use empty string if no prefix
+    name: String,
     prefix: String,
 }
 
@@ -75,11 +75,11 @@ fn get_dest() -> Vec<Destination> {
     let path: String = env::var("XDG_CONFIG_HOME")
         .unwrap_or(env::var("HOME").unwrap_or("~".to_string()) + "/.config/")
         + "webhooks.tsv";
-    println!("path: {}", path);
 
     let mut reader = ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
+        .comment(Some(b'#'))
         .flexible(true)
         .from_path(path)
         .expect("~/.config/webhooks.tsv exists");
@@ -89,7 +89,8 @@ fn get_dest() -> Vec<Destination> {
         let record = result.unwrap();
         out.push(Destination {
             url: record[0].to_owned(),
-            prefix: String::from(record.get(1).unwrap_or("")),
+            name: String::from(record.get(1).unwrap_or("")),
+            prefix: String::from(record.get(2).unwrap_or("")),
         });
     }
 
@@ -116,8 +117,11 @@ async fn req(msg: &String, files: &Vec<File>, dest: Destination, client: &reqwes
     let res = client.post(dest.url).multipart(form).send().await;
     match res {
         Ok(resp) => {
-            println!("{:#?}", resp);
-            println!("{:#?}", resp.text().await);
+            println!("{}: {:#?}", dest.name, resp.status());
+            if resp.error_for_status_ref().is_err() {
+                println!("{:#?}\n******", resp);
+                println!("{:#?}", resp.text().await.unwrap_or("[null]".to_string()));
+            }
         }
         Err(error) => panic!("uwupsies error: {:?}", error),
     }
