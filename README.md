@@ -1,4 +1,4 @@
-# Discord Webhook Agent
+# Rust Discord Webhook Agent
 This is a little "script" I wrote for practice with Rust and asynchronous operations within Rust.
 
 ## Getting started
@@ -21,7 +21,7 @@ If you are only specifying `WEBHOOK_URL`, you do not have to include a tab.
 ## Invokation
 Simply type the built executable's filename, optionally followed by a list of files you wish to attach to your webhook message.
 ```
-./target/release/webhook [FILENAMES]
+./target/release/discord-webhook-rs [FILENAMES]
 ```
 
-If you prefer, you can move the `webhook` binary executable to another location and execute it there.
+If you prefer, you can move the `discord-webhook-rs` binary executable to another location/name and execute it there.

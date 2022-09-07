@@ -95,6 +95,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "discord-webhook-rs"
+version = "0.1.0"
+dependencies = [
+ "csv",
+ "futures",
+ "reqwest",
+ "tokio",
+]
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1050,16 +1060,6 @@ checksum = "ed055ab27f941423197eb86b2035720b1a3ce40504df082cac2ecc6ed73335a1"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "webhooks"
-version = "0.1.0"
-dependencies = [
- "csv",
- "futures",
- "reqwest",
- "tokio",
 ]
 
 [[package]]
