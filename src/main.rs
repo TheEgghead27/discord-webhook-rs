@@ -1,11 +1,9 @@
 use std::env;
 use std::path::PathBuf;
-// use std::fs;
+use std::process::Command;
 use tokio::fs;
 use futures::future::join_all;
-// use reqwest::header::HeaderMap;
-// use reqwest::header::HeaderValue;
-use reqwest::multipart::Part;
+use reqwest::{Client, multipart::{Form, Part}};
 
 static BUF_NAME: &str = "/tmp/webhook.tmp";
 
@@ -23,7 +21,6 @@ async fn main() {
             (cfg!(debug_assertions) && i == 1 && arg == "dev") {
             continue;
         }
-        // println!("{i} {arg}");
         files.push(
             File {
                 name: PathBuf::from(&arg),
@@ -36,11 +33,12 @@ async fn main() {
 	let u = [
         "https://discord.com/api/webhooks/REDACTED",
     ];
+
     let editor: String = match env::var("EDITOR") {
         Ok(ed) => ed,
         Err(_) => String::from("vim"),
     };
-    std::process::Command::new(editor)
+    Command::new(editor)
         .arg(BUF_NAME)
         // even though the docs say spawn() and status() should do the same thing with stdio,
         // it seems to mess up stdin when using spawn() instead of status()
@@ -53,11 +51,12 @@ async fn main() {
                 // this expression
                 // so instead we use .to_owned() to take ownership of it as a String
                 .trim().to_owned();
-    
+
+    let client = Client::new();
 
     let mut v = Vec::new();
     for url in u {
-        v.push(req(&contents, &files, url, None));
+        v.push(req(&contents, &files, url, &client));
     }
     
     // https://stackoverflow.com/questions/63326882/how-to-wait-for-a-list-of-async-function-calls-in-rust
@@ -65,19 +64,14 @@ async fn main() {
    
 }
 
-async fn req(msg: &String, files: &Vec<File>, url: &str, client: Option<reqwest::Client>) {
-    let client = client.unwrap_or(reqwest::Client::new());
-
-    /*
-    let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-    */
-    let mut form = reqwest::multipart::Form::new()
+async fn req(msg: &String, files: &Vec<File>, url: &str, client: &reqwest::Client) {
+    let mut form = Form::new()
         .part("payload_json",
               Part::text(format!("{{\"content\": \"{msg}\"}}"))
               .mime_str("application/json")
               .expect("Failed to set mime")
         );
+    
     for (i, file) in files.iter().enumerate() {
         form = form.part(format!("files[{i}]"),
                          Part::bytes(file.data.to_owned())
@@ -86,8 +80,6 @@ async fn req(msg: &String, files: &Vec<File>, url: &str, client: Option<reqwest:
     }
 
     let res = client.post(url)
-        // .body("{\"content\": \"testing testing 123\"}")
-        // .headers(headers)
         .multipart(form)
         .send().await;
     match res {
