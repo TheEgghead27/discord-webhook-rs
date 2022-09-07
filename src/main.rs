@@ -53,7 +53,7 @@ async fn main() {
         }
         files.push(File {
             name: PathBuf::from(&arg),
-            data: fs::read(arg).await.unwrap(),
+            data: fs::read(arg).await.expect("Reading attachment file data"),
         });
     }
 
@@ -68,11 +68,13 @@ async fn main() {
         // even though the docs say spawn() and status() should do the same thing with stdio,
         // it seems to mess up stdin when using spawn() instead of status()
         .status()
-        .expect("EDITOR failed to start - have you exported the environment variable?");
+        .expect(
+            "Starting EDITOR - have you exported the environment variable to a valid executable?",
+        );
 
     let contents = fs::read_to_string(BUF_NAME)
         .await
-        .unwrap()
+        .expect("Reading message text file")
         // .trim() returns a &str which we dont own, and disappears with this String after
         // this expression
         // so instead we use .to_owned() to take ownership of it as a String
@@ -105,7 +107,7 @@ fn get_dest() -> Vec<Destination> {
 
     let mut out: Vec<Destination> = Vec::new();
     for result in reader.records() {
-        let record = result.unwrap();
+        let record = result.expect("Getting TSV record");
         out.push(Destination {
             url: record[0].to_owned(),
             name: String::from(record.get(1).unwrap_or("")),
@@ -121,7 +123,7 @@ async fn req(msg: &String, files: &Vec<File>, dest: Destination, client: &reqwes
         "payload_json",
         Part::text(format!("{{\"content\": \"{} {}\"}}", dest.prefix, msg))
             .mime_str("application/json")
-            .expect("Failed to set mime"),
+            .expect("Set MIME string"),
     );
 
     for (i, file) in files.iter().enumerate() {
@@ -142,6 +144,6 @@ async fn req(msg: &String, files: &Vec<File>, dest: Destination, client: &reqwes
                 println!("{:#?}", resp.text().await.unwrap_or("[null]".to_string()));
             }
         }
-        Err(error) => panic!("uwupsies error: {:?}", error),
+        Err(error) => panic!("Request error: {:?}", error),
     }
 }
