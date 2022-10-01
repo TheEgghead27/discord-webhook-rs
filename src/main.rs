@@ -23,6 +23,7 @@ use reqwest::{
     multipart::{Form, Part},
     Client,
 };
+use serde_json::json;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
@@ -121,7 +122,7 @@ fn get_dest() -> Vec<Destination> {
 async fn req(msg: &String, files: &Vec<File>, dest: Destination, client: &reqwest::Client) {
     let mut form = Form::new().part(
         "payload_json",
-        Part::text(format!("{{\"content\": \"{} {}\"}}", dest.prefix, msg))
+        Part::text(json!({ "content": format!("{} {}", dest.prefix, msg) }).to_string())
             .mime_str("application/json")
             .expect("Set MIME string"),
     );

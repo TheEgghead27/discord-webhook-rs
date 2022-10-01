@@ -101,6 +101,7 @@ dependencies = [
  "csv",
  "futures",
  "reqwest",
+ "serde_json",
  "tokio",
 ]
 
